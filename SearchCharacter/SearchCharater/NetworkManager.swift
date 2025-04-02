@@ -16,19 +16,25 @@ class NetworkManager:CharacterServiceProtocol {
     static let shared = NetworkManager()
     
     private let baseURL = "https://rickandmortyapi.com/api/character/?name="
-    
+    private let session: URLSession
+
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+
     func fetchCharacters(name: String) -> AnyPublisher<[Character], Error> {
         guard let url = URL(string: "\(baseURL)\(name)") else {
             return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
         }
-        
-        return URLSession.shared.dataTaskPublisher(for: url)
-            .map { $0.data }
+
+        return session.dataTaskPublisher(for: url)
+            .map(\.data)
             .decode(type: CharacterResponse.self, decoder: JSONDecoder())
             .map { $0.results }
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
 }
+
 
 
