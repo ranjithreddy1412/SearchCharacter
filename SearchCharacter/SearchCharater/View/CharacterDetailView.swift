@@ -43,10 +43,12 @@ struct CharacterDetailView: View {
     }
 
     private func formattedDate(from isoDate: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        if let date = formatter.date(from: isoDate) {
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = isoFormatter.date(from: isoDate) {
             let outputFormatter = DateFormatter()
-            outputFormatter.dateStyle = .medium
+            outputFormatter.locale = Locale(identifier: "en_US_POSIX")
+            outputFormatter.dateFormat = "MMM dd, yyyy"
             return outputFormatter.string(from: date)
         }
         return isoDate

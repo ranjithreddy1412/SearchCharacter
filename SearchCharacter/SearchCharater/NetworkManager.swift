@@ -8,7 +8,11 @@
 import Foundation
 import Combine
 
-class NetworkManager {
+protocol CharacterServiceProtocol {
+    func fetchCharacters(name: String) -> AnyPublisher<[Character], Error>
+}
+
+class NetworkManager:CharacterServiceProtocol {
     static let shared = NetworkManager()
     
     private let baseURL = "https://rickandmortyapi.com/api/character/?name="

@@ -12,11 +12,15 @@ class CharacterViewModel: ObservableObject {
     @Published var characters: [Character] = []
     @Published var searchText: String = ""
     @Published var isLoading: Bool = false
-    @Published var errorMessage: String? = nil
+    @Published var errorMessage: String?
 
     private var cancellables = Set<AnyCancellable>()
+    private let characterService: CharacterServiceProtocol
 
-    init() {
+    // MARK: - Initializer with Dependency Injection
+    init(characterService: CharacterServiceProtocol = NetworkManager.shared) {
+        self.characterService = characterService
+        
         $searchText
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .removeDuplicates()
@@ -26,27 +30,30 @@ class CharacterViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    // MARK: - Fetch Method
     func fetchCharacters(name: String) {
         guard !name.isEmpty else {
             characters = []
             return
         }
-        
+
         isLoading = true
-        
-        NetworkManager.shared.fetchCharacters(name: name)
+        errorMessage = nil
+
+        characterService.fetchCharacters(name: name)
             .sink(receiveCompletion: { [weak self] completion in
-                self?.isLoading = false
-                switch completion {
-                case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
-                case .finished:
-                    break
+                DispatchQueue.main.async {
+                    self?.isLoading = false
+                    if case .failure(let error) = completion {
+                        self?.errorMessage = error.localizedDescription
+                        self?.characters = []
+                    }
                 }
             }, receiveValue: { [weak self] characters in
-                self?.characters = characters
+                DispatchQueue.main.async {
+                    self?.characters = characters
+                }
             })
             .store(in: &cancellables)
     }
 }
-
