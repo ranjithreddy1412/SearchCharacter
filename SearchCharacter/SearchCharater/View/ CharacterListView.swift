@@ -16,6 +16,8 @@ struct CharacterListView: View {
                 TextField("Search characters...", text: $viewModel.searchText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding()
+                    .accessibilityLabel(Text(" Search Button"))
+                    .accessibilityHint(Text("Enter the name of the character to search"))
                 
                 if viewModel.isLoading {
                     ProgressView("Loading...")
